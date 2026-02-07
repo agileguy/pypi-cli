@@ -1,230 +1,245 @@
 # PyPI CLI
 
-Command-line interface for PyPI - The Python Package Index
+[![npm version](https://img.shields.io/npm/v/pypi-cli.svg)](https://www.npmjs.com/package/pypi-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modern, TypeScript-based CLI tool for interacting with PyPI, built with Bun.
+A powerful command-line interface for [PyPI](https://pypi.org) - The Python Package Index. Search packages, view statistics, check security vulnerabilities, publish packages, and manage API tokens directly from your terminal.
 
 ## Features
 
-- **Configuration management** with secure token storage
-- **Package search** - Find packages on PyPI
-- **Package information** - Get detailed package metadata
-- **Package publishing** - Publish packages to PyPI or TestPyPI
-  - Validate distribution files before upload
-  - Upload single files or entire directories
-  - Support for both PyPI and TestPyPI
-  - Interactive confirmation with dry-run support
-- Multiple output formats (JSON, table, pretty)
-- Color output support
-- Built with TypeScript and Bun for maximum performance
+- **Package Discovery** - Search and explore packages with filters
+- **Package Information** - Detailed metadata, versions, releases, and dependencies
+- **Statistics & Analytics** - Download trends, charts, and trending packages
+- **Publishing** - Validate and upload packages to PyPI or TestPyPI
+- **Security Scanning** - Vulnerability auditing via OSV API
+- **Token Management** - Create, list, and revoke API tokens
+- **Multiple Output Formats** - JSON, table, or pretty-printed output
+- **Scriptable** - Perfect for CI/CD pipelines and automation
 
 ## Installation
 
-### From Source
-
 ```bash
-git clone https://github.com/agileguy/pypi-cli.git
-cd pypi-cli
-bun install
-bun run build
+# Using npm
+npm install -g pypi-cli
+
+# Using bun
+bun install -g pypi-cli
 ```
 
-### Development
+## Quick Start
+
+### 1. Configure your API token (optional, for publishing)
 
 ```bash
-bun run dev
-```
-
-## Configuration
-
-The CLI supports three configuration methods (in order of priority):
-
-1. Command-line options (highest priority)
-2. Environment variables
-3. Configuration file (lowest priority)
-
-### Interactive Setup
-
-Initialize configuration with an interactive setup wizard:
-
-```bash
-pypi config init
-```
-
-### Configuration File
-
-The CLI looks for configuration files in the following locations:
-
-1. `.pypi.json` (project-specific, highest priority)
-2. `~/.pypi/config.json` (user home directory)
-3. `~/.pypi.json` (alternative user config)
-
-Example configuration file:
-
-```json
-{
-  "apiToken": "your-pypi-api-token",
-  "repository": "https://upload.pypi.org/legacy/",
-  "outputFormat": "pretty",
-  "colorOutput": true
-}
-```
-
-### Environment Variables
-
-- `PYPI_API_TOKEN` - PyPI API token
-- `PYPI_REPOSITORY` - PyPI repository URL
-- `PYPI_OUTPUT_FORMAT` - Output format (json, table, pretty)
-
-### Configuration Commands
-
-View current configuration:
-
-```bash
-pypi config get
-```
-
-Set a configuration value:
-
-```bash
-pypi config set apiToken pypi-your-token-here
-pypi config set outputFormat json
-pypi config set colorOutput false
-```
-
-## Usage
-
-### Global Options
-
-All commands support these global options:
-
-- `--api-token <token>` - PyPI API token (overrides config and env)
-- `--output <format>` - Output format: json, table, or pretty (default: pretty)
-- `--verbose` - Enable verbose logging
-- `--no-color` - Disable colored output
-
-### Commands
-
-#### Configuration
-
-Manage PyPI CLI configuration:
-
-```bash
-# Initialize configuration
+# Interactive setup
 pypi config init
 
-# View current configuration
-pypi config get
+# Or set directly
+pypi config set apiToken pypi-xxxxxxxxxxxxx
 
-# Set configuration value
-pypi config set <key> <value>
+# Or use environment variable
+export PYPI_API_TOKEN=pypi-xxxxxxxxxxxxx
 ```
 
-#### Search
+### 2. Search for packages
 
-Search for packages on PyPI:
+```bash
+pypi search django --limit 10
+```
+
+### 3. Get package information
+
+```bash
+pypi info requests
+```
+
+## Commands
+
+### Configuration
+
+```bash
+pypi config init              # Interactive configuration setup
+pypi config get               # Show current configuration
+pypi config set <key> <value> # Set a configuration value
+```
+
+### Package Discovery
 
 ```bash
 # Search for packages
 pypi search django
+pypi search "web framework" --limit 20
 
-# Limit results
-pypi search flask --limit 10
+# Get package information
+pypi info requests
+pypi info flask --version 2.3.0
 
-# JSON output
-pypi search requests --output json
+# List all versions
+pypi versions numpy
+pypi versions pandas --include-yanked
+
+# Show release history
+pypi releases django --limit 10
+
+# View dependencies
+pypi deps requests
+pypi deps flask --extras async
 ```
 
-#### Info
-
-Get detailed information about a package:
+### Statistics
 
 ```bash
-# Get latest version info
-pypi info requests
+# Get download statistics
+pypi stats requests
+pypi stats numpy --period month
 
-# Get specific version
-pypi info requests 2.28.0
+# Detailed download breakdown
+pypi downloads pandas
+pypi downloads flask --by-python-version
 
-# Show download statistics
-pypi info requests --stats
+# Discover trending packages
+pypi trending
+pypi trending --category web --limit 20
 ```
 
-#### Publishing
-
-Publish packages to PyPI or TestPyPI:
+### Publishing
 
 ```bash
 # Validate distribution files
-pypi publish check
+pypi check
+pypi check dist/mypackage-1.0.0.tar.gz
 
 # Upload a single file
-pypi publish upload dist/mypackage-1.0.0.tar.gz
+pypi upload dist/mypackage-1.0.0.tar.gz
 
 # Publish all files in dist/
 pypi publish
-
-# Publish to TestPyPI
 pypi publish --repository testpypi
 
 # Dry run (validate only)
 pypi publish --dry-run
 ```
 
-See the [Publishing Guide](docs/publishing.md) for detailed documentation.
+### Token Management
 
-More commands coming in future phases:
+```bash
+# Create a new API token
+pypi token create --name "CI/CD Token" --scope project:mypackage
 
-- Package download
-- Statistics
-- Security scanning
+# List all tokens
+pypi token list
 
-## Development
-
-### Prerequisites
-
-- [Bun](https://bun.sh) >= 1.0.0
-- Node.js >= 18.0.0 (for runtime)
-- TypeScript >= 5.0.0
-
-### Scripts
-
-- `bun run build` - Build the CLI for production
-- `bun run dev` - Run in development mode
-- `bun run test` - Run tests
-- `bun run typecheck` - Type check without building
-- `bun run clean` - Remove build artifacts
-
-### Project Structure
-
+# Revoke a token
+pypi token revoke <token-id>
 ```
-pypi-cli/
-├── src/
-│   ├── commands/          # Command implementations
-│   │   ├── config/        # Configuration commands
-│   │   ├── search/        # Search commands
-│   │   ├── info/          # Info commands
-│   │   └── publish/       # Publishing commands
-│   │       ├── check.ts   # Validate distributions
-│   │       ├── upload.ts  # Upload single file
-│   │       └── index.ts   # Publish all files
-│   ├── lib/              # Shared utilities
-│   │   ├── api-client.ts # PyPI API client
-│   │   ├── config.ts     # Configuration management
-│   │   ├── upload.ts     # Upload utilities
-│   │   ├── validators.ts # Input validation
-│   │   └── output.ts     # Output formatting
-│   ├── types/            # TypeScript type definitions
-│   │   ├── api.ts        # PyPI API types
-│   │   ├── config.ts     # Config types
-│   │   └── index.ts      # Type exports
-│   └── index.ts          # CLI entry point
-├── docs/                 # Documentation
-│   └── publishing.md     # Publishing guide
-├── dist/                 # Build output
-├── package.json
-├── tsconfig.json
-└── README.md
+
+### Security
+
+```bash
+# Audit package for vulnerabilities
+pypi audit requests
+pypi audit flask --version 2.3.0
+
+# Verify package integrity
+pypi verify requests
+pypi verify numpy --version 1.24.0
+```
+
+## Global Options
+
+All commands support these global options:
+
+| Option | Description |
+|--------|-------------|
+| `--api-token <token>` | Use a specific API token (overrides config) |
+| `--output <format>` | Output format: `json`, `table`, or `pretty` (default: `pretty`) |
+| `--verbose` | Enable verbose logging |
+| `--no-color` | Disable colored output |
+| `-h, --help` | Display help for command |
+
+## Configuration
+
+The CLI stores configuration in `~/.pypi/config.json`. Configuration priority:
+
+1. Command-line flags (`--api-token`)
+2. Environment variables (`PYPI_API_TOKEN`)
+3. Configuration file
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `PYPI_API_TOKEN` | Your PyPI API token |
+| `PYPI_REPOSITORY` | Repository URL (default: https://upload.pypi.org/legacy/) |
+| `PYPI_OUTPUT_FORMAT` | Output format (json, table, pretty) |
+
+### Configuration File
+
+```json
+{
+  "apiToken": "pypi-xxxxxxxxxxxxx",
+  "repository": "https://upload.pypi.org/legacy/",
+  "outputFormat": "pretty",
+  "colorOutput": true
+}
+```
+
+## Examples
+
+### Search and filter packages
+
+```bash
+# Search for packages
+pypi search "machine learning" --limit 20
+
+# Get detailed package info
+pypi info tensorflow --stats
+```
+
+### View download statistics
+
+```bash
+# Get download stats with ASCII chart
+pypi stats pandas --period week
+
+# Compare download trends
+pypi downloads numpy --by-python-version
+```
+
+### Security audit before installing
+
+```bash
+# Check for known vulnerabilities
+pypi audit django
+
+# Verify package integrity
+pypi verify requests --version 2.28.0
+```
+
+### Publish a package
+
+```bash
+# Build your package
+python -m build
+
+# Validate before upload
+pypi check
+
+# Upload to TestPyPI first
+pypi publish --repository testpypi
+
+# Then publish to PyPI
+pypi publish
+```
+
+### CI/CD Integration
+
+```bash
+# Use environment variable for token
+PYPI_API_TOKEN=$PYPI_TOKEN pypi publish --output json
+
+# Check for vulnerabilities in CI
+pypi audit mypackage --output json | jq '.vulnerabilities | length'
 ```
 
 ## API Token
@@ -240,20 +255,69 @@ To use authenticated PyPI features, you'll need an API token:
 
 The token will be stored securely in `~/.pypi/config.json` with appropriate file permissions.
 
-## Contributing
+## Development
 
-Contributions are welcome. Please ensure your code:
+### Prerequisites
 
-- Follows the existing code style
-- Includes appropriate tests
-- Updates documentation as needed
+- [Bun](https://bun.sh) >= 1.0.0
+- Node.js >= 18.0.0 (for runtime)
+- TypeScript >= 5.0.0
+
+### Scripts
+
+```bash
+bun run build     # Build the CLI for production
+bun run dev       # Run in development mode
+bun run test      # Run tests
+bun run typecheck # Type check without building
+bun run clean     # Remove build artifacts
+```
+
+### Project Structure
+
+```
+pypi-cli/
+├── src/
+│   ├── commands/
+│   │   ├── config/     # Configuration commands
+│   │   ├── search/     # Package search
+│   │   ├── info/       # Package info, versions, releases, deps
+│   │   ├── publish/    # check, upload, publish
+│   │   ├── stats/      # stats, downloads, trending
+│   │   ├── token/      # create, list, revoke
+│   │   └── security/   # audit, verify
+│   ├── lib/
+│   │   ├── api-client.ts  # PyPI API client
+│   │   ├── config.ts      # Configuration management
+│   │   ├── upload.ts      # Upload utilities
+│   │   ├── cache.ts       # Statistics caching
+│   │   ├── chart.ts       # ASCII chart rendering
+│   │   ├── validators.ts  # PEP 440/508 validation
+│   │   └── output.ts      # Output formatting
+│   ├── types/
+│   │   ├── api.ts      # PyPI API types
+│   │   └── config.ts   # Config types
+│   └── index.ts        # CLI entry point
+├── tests/
+│   └── unit/           # Unit tests
+├── docs/
+│   └── publishing.md   # Publishing guide
+└── package.json
+```
 
 ## License
 
 MIT
 
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
 ## Links
 
 - [PyPI](https://pypi.org)
-- [PyPI JSON API Documentation](https://warehouse.pypa.io/api-reference/json.html)
-- [Bun](https://bun.sh)
+- [PyPI JSON API](https://warehouse.pypa.io/api-reference/json.html)
+- [pypistats.org API](https://pypistats.org/api/)
+- [OSV Vulnerability Database](https://osv.dev/)
+- [GitHub Repository](https://github.com/agileguy/pypi-cli)
+- [npm Package](https://www.npmjs.com/package/pypi-cli)
