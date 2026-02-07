@@ -1,6 +1,6 @@
 # PyPI CLI
 
-[![npm version](https://img.shields.io/npm/v/pypi-cli.svg)](https://www.npmjs.com/package/pypi-cli)
+[![npm version](https://img.shields.io/npm/v/pypkg-cli.svg)](https://www.npmjs.com/package/pypkg-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A powerful command-line interface for [PyPI](https://pypi.org) - The Python Package Index. Search packages, view statistics, check security vulnerabilities, publish packages, and manage API tokens directly from your terminal.
@@ -20,10 +20,10 @@ A powerful command-line interface for [PyPI](https://pypi.org) - The Python Pack
 
 ```bash
 # Using npm
-npm install -g pypi-cli
+npm install -g pypkg-cli
 
 # Using bun
-bun install -g pypi-cli
+bun install -g pypkg-cli
 ```
 
 ## Quick Start
@@ -320,4 +320,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [pypistats.org API](https://pypistats.org/api/)
 - [OSV Vulnerability Database](https://osv.dev/)
 - [GitHub Repository](https://github.com/agileguy/pypi-cli)
-- [npm Package](https://www.npmjs.com/package/pypi-cli)
+- [npm Package](https://www.npmjs.com/package/pypkg-cli)
