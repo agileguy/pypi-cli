@@ -1,0 +1,60 @@
+{
+  "name": "pypi-cli",
+  "version": "1.0.0",
+  "description": "Command-line interface for PyPI - The Python Package Index",
+  "type": "module",
+  "bin": {
+    "pypi": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node --format esm && sed -i '' '1s|#!/usr/bin/env bun|#!/usr/bin/env node|' dist/index.js && chmod +x dist/index.js",
+    "dev": "bun run src/index.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "pypi",
+    "python",
+    "cli",
+    "package-manager",
+    "pip",
+    "python-packages",
+    "developer-tools",
+    "command-line"
+  ],
+  "author": "agileguy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agileguy/pypi-cli.git"
+  },
+  "homepage": "https://github.com/agileguy/pypi-cli#readme",
+  "bugs": {
+    "url": "https://github.com/agileguy/pypi-cli/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "cli-table3": "^0.6.5",
+    "commander": "^13.1.0",
+    "ora": "^8.0.0"
+  }
+}
