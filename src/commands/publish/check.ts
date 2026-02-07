@@ -6,7 +6,7 @@
 
 import { Command } from 'commander';
 import { validateDistribution, getDistributionFiles, extractMetadataFromWheel, extractMetadataFromSdist } from '../../lib/upload.js';
-import { success, error, warning, info, formatHeader } from '../../lib/output.js';
+import { success, error, info, formatHeader } from '../../lib/output.js';
 import chalk from 'chalk';
 
 /**

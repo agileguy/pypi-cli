@@ -76,8 +76,8 @@ export function createReleasesCommand(): Command {
             filename,
             formatFileSize(file.size),
             file.packagetype,
-            uploadDate,
-            pythonVersion,
+            uploadDate || '',
+            pythonVersion || '',
           ]);
         }
 

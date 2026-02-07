@@ -18,6 +18,7 @@ interface StatsOptions {
 interface StatsData {
   category: string;
   downloads: number;
+  date?: string;
 }
 
 /**
@@ -121,10 +122,7 @@ export function createStatsCommand(): Command {
 
             // Aggregate by category (sum all dates for each Python version)
             const pythonAggregated = pythonData.reduce((acc, d) => {
-              if (!acc[d.category]) {
-                acc[d.category] = 0;
-              }
-              acc[d.category] += d.downloads;
+              acc[d.category] = (acc[d.category] || 0) + d.downloads;
               return acc;
             }, {} as Record<string, number>);
 
@@ -152,10 +150,7 @@ export function createStatsCommand(): Command {
 
             // Aggregate by category (sum all dates for each system)
             const systemAggregated = systemData.reduce((acc, d) => {
-              if (!acc[d.category]) {
-                acc[d.category] = 0;
-              }
-              acc[d.category] += d.downloads;
+              acc[d.category] = (acc[d.category] || 0) + d.downloads;
               return acc;
             }, {} as Record<string, number>);
 

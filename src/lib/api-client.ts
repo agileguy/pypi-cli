@@ -234,7 +234,7 @@ export class PyPIClient {
    */
   async searchPackages(
     query: string,
-    limit: number = 20
+    _limit: number = 20
   ): Promise<{ data: SearchResult[]; rateLimit?: RateLimitInfo }> {
     // Try exact package name match
     try {

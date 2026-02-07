@@ -88,8 +88,8 @@ export function createVersionsCommand(): Command {
 
           rows.push([
             versionDisplay,
-            releaseDate,
-            requiresPython,
+            releaseDate || '',
+            requiresPython || '',
             isYanked ? chalk.red('Yes') : '',
           ]);
         }

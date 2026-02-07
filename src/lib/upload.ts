@@ -389,7 +389,6 @@ function formatBytes(bytes: number): string {
  */
 export async function getDistributionFiles(dirPath: string = './dist'): Promise<string[]> {
   try {
-    const validExtensions = ['.tar.gz', '.whl', '.egg', '.zip'];
     const files: string[] = [];
 
     // Use Bun's glob to find files
