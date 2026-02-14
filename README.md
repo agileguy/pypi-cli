@@ -1,7 +1,7 @@
 # PyPI CLI
 
 <p align="center">
-  <img src="docs/logo.png" alt="PyPI CLI Logo" width="200">
+  <img src="https://raw.githubusercontent.com/agileguy/pypi-cli/main/docs/logo.png" alt="PyPI CLI Logo" width="200">
 </p>
 
 [![npm version](https://img.shields.io/npm/v/pypkg-cli.svg)](https://www.npmjs.com/package/pypkg-cli)
