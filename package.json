@@ -14,7 +14,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target node --format esm && sed -i '' '1s|#!/usr/bin/env bun|#!/usr/bin/env node|' dist/index.js && chmod +x dist/index.js",
+    "build": "bun build src/index.ts --outdir dist --target node --format esm && { echo '#!/usr/bin/env node' && tail -n +2 dist/index.js; } > dist/index.tmp && mv dist/index.tmp dist/index.js && chmod +x dist/index.js",
     "dev": "bun run src/index.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
