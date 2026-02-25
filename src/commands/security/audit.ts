@@ -5,7 +5,7 @@
  */
 
 import { Command } from 'commander';
-import { formatError, formatBold, formatInfo, formatWarning, formatSuccess, formatDim } from '../../lib/output.js';
+import { formatError, formatBold, formatInfo, formatWarning, formatSuccess, formatDim, jsonOutput } from '../../lib/output.js';
 
 interface AuditOptions {
   severity?: 'low' | 'medium' | 'high' | 'critical';
@@ -219,7 +219,7 @@ async function handleAudit(packageName: string, version: string | undefined, opt
 
     // Output as JSON if requested
     if (options.json) {
-      console.log(JSON.stringify(vulnerabilities, null, 2));
+      jsonOutput(vulnerabilities, { package: packageName });
       return;
     }
 

@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { createTable, error as logError } from '../../lib/output.js';
+import { createTable, error as logError, jsonOutput } from '../../lib/output.js';
 import chalk from 'chalk';
 
 interface VersionsOptions {
@@ -49,7 +49,7 @@ export function createVersionsCommand(): Command {
 
         // JSON output
         if (options.json) {
-          const jsonOutput = displayVersions.map(version => {
+          const versionData = displayVersions.map(version => {
             const release = releases[version];
             const hasFiles = release && release.length > 0;
             const releaseDate = hasFiles && release[0] ? release[0].upload_time.split('T')[0] : null;
@@ -65,7 +65,7 @@ export function createVersionsCommand(): Command {
             };
           });
 
-          console.log(JSON.stringify(jsonOutput, null, 2));
+          jsonOutput(versionData, { package: packageName });
           return;
         }
 

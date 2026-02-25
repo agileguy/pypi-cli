@@ -6,11 +6,12 @@
 
 import { Command } from 'commander';
 import { createHash } from 'crypto';
-import { formatError, formatBold, formatInfo, formatSuccess, formatDim } from '../../lib/output.js';
+import { formatError, formatBold, formatInfo, formatSuccess, formatDim, jsonOutput } from '../../lib/output.js';
 import type { PyPIPackage, ReleaseFile } from '../../types/index.js';
 
 interface VerifyOptions {
   algorithm?: 'sha256' | 'md5';
+  json?: boolean;
 }
 
 /**
@@ -91,8 +92,10 @@ async function handleVerify(packageName: string, version: string | undefined, op
   try {
     const algorithm = options.algorithm || 'sha256';
 
-    console.log('\n' + formatBold('🔒 Verifying: ' + packageName));
-    console.log('═══════════════════════════════════════\n');
+    if (!options.json) {
+      console.log('\n' + formatBold('🔒 Verifying: ' + packageName));
+      console.log('═══════════════════════════════════════\n');
+    }
 
     // Fetch package info
     const packageInfo = await fetchPackageInfo(packageName, version);
@@ -107,7 +110,9 @@ async function handleVerify(packageName: string, version: string | undefined, op
       throw new Error('Could not determine package version');
     }
 
-    console.log(formatInfo(`Version: ${targetVersion}\n`));
+    if (!options.json) {
+      console.log(formatInfo(`Version: ${targetVersion}\n`));
+    }
 
     // Get release files
     const releases = packageInfo.releases && packageInfo.releases[targetVersion];
@@ -115,40 +120,68 @@ async function handleVerify(packageName: string, version: string | undefined, op
       throw new Error(`No release files found for version ${targetVersion}`);
     }
 
-    console.log(formatInfo(`Found ${releases.length} file(s) to verify\n`));
+    if (!options.json) {
+      console.log(formatInfo(`Found ${releases.length} file(s) to verify\n`));
+    }
 
     // Verify each file
     let allVerified = true;
     let verifiedCount = 0;
+    const results: Array<{ filename: string; algorithm: string; expected: string | null; computed: string | null; verified: boolean; error?: string }> = [];
 
     for (const file of releases) {
-      console.log(formatBold(`Checking ${file.filename}...`));
+      if (!options.json) {
+        console.log(formatBold(`Checking ${file.filename}...`));
+      }
 
       const expectedHash = getExpectedHash(file, algorithm);
       if (!expectedHash) {
-        console.log(formatError(`  ✗ No ${algorithm} hash available`));
+        if (!options.json) {
+          console.log(formatError(`  ✗ No ${algorithm} hash available`));
+        }
+        results.push({ filename: file.filename, algorithm, expected: null, computed: null, verified: false, error: `No ${algorithm} hash available` });
         allVerified = false;
         continue;
       }
 
-      console.log(formatDim(`  Expected ${algorithm.toUpperCase()}: ${expectedHash.substring(0, 16)}...`));
+      if (!options.json) {
+        console.log(formatDim(`  Expected ${algorithm.toUpperCase()}: ${expectedHash.substring(0, 16)}...`));
+      }
 
       // Download and compute hash
       try {
         const computedHash = await downloadAndHash(file.url, algorithm);
-        console.log(formatDim(`  Computed ${algorithm.toUpperCase()}: ${computedHash.substring(0, 16)}...`));
 
         if (computedHash === expectedHash) {
-          console.log(formatSuccess('  ✓ Hash verified\n'));
+          if (!options.json) {
+            console.log(formatDim(`  Computed ${algorithm.toUpperCase()}: ${computedHash.substring(0, 16)}...`));
+            console.log(formatSuccess('  ✓ Hash verified\n'));
+          }
+          results.push({ filename: file.filename, algorithm, expected: expectedHash, computed: computedHash, verified: true });
           verifiedCount++;
         } else {
-          console.log(formatError('  ✗ Hash mismatch!\n'));
+          if (!options.json) {
+            console.log(formatDim(`  Computed ${algorithm.toUpperCase()}: ${computedHash.substring(0, 16)}...`));
+            console.log(formatError('  ✗ Hash mismatch!\n'));
+          }
+          results.push({ filename: file.filename, algorithm, expected: expectedHash, computed: computedHash, verified: false });
           allVerified = false;
         }
-      } catch (error) {
-        console.log(formatError(`  ✗ Failed to verify: ${error instanceof Error ? error.message : 'unknown error'}\n`));
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'unknown error';
+        if (!options.json) {
+          console.log(formatError(`  ✗ Failed to verify: ${errMsg}\n`));
+        }
+        results.push({ filename: file.filename, algorithm, expected: expectedHash, computed: null, verified: false, error: errMsg });
         allVerified = false;
       }
+    }
+
+    // Output
+    if (options.json) {
+      jsonOutput({ files: results, all_verified: allVerified, verified_count: verifiedCount }, { package: packageName, version: targetVersion });
+      if (!allVerified) process.exit(1);
+      return;
     }
 
     // Summary
@@ -174,5 +207,6 @@ export function createVerifyCommand(): Command {
     .argument('<package>', 'Package name to verify')
     .argument('[version]', 'Specific version to verify (defaults to latest)')
     .option('--algorithm <type>', 'Hash algorithm (sha256 or md5)', 'sha256')
+    .option('--json', 'Output as JSON')
     .action(handleVerify);
 }

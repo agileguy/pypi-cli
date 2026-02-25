@@ -7,7 +7,7 @@ import { createClient, PyPIAPIError } from '../../lib/api-client.js';
 import { cache, TTL } from '../../lib/cache.js';
 import { formatNumber, calculatePercentageChange } from '../../lib/chart.js';
 import chalk from 'chalk';
-import { error as logError } from '../../lib/output.js';
+import { error as logError, jsonOutput } from '../../lib/output.js';
 import Table from 'cli-table3';
 import ora from 'ora';
 
@@ -100,7 +100,7 @@ export function createTrendingCommand(): Command {
         const displayPackages = trendingPackages.slice(0, limit);
 
         if (options.json) {
-          console.log(JSON.stringify({ trending: displayPackages }, null, 2));
+          jsonOutput(displayPackages);
         } else {
           // Format and display
           console.log(chalk.bold.cyan('🔥 Trending Python Packages'));

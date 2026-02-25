@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { error as logError } from '../../lib/output.js';
+import { error as logError, jsonOutput } from '../../lib/output.js';
 import chalk from 'chalk';
 
 interface DepsOptions {
@@ -95,7 +95,7 @@ export function createDepsCommand(): Command {
 
         // JSON output
         if (options.json) {
-          console.log(JSON.stringify(parsedDeps, null, 2));
+          jsonOutput(parsedDeps, { package: packageName });
           return;
         }
 

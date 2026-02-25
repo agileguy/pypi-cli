@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { formatPackageInfo, error as logError } from '../../lib/output.js';
+import { formatPackageInfo, error as logError, jsonOutput } from '../../lib/output.js';
 import { createVersionsCommand } from './versions.js';
 import { createReleasesCommand } from './releases.js';
 import { createDepsCommand } from './deps.js';
@@ -34,7 +34,7 @@ export function createInfoCommand(): Command {
 
         // Output format
         if (options.json) {
-          console.log(JSON.stringify(result.data.info, null, 2));
+          jsonOutput(result.data.info, { package: packageName });
         } else {
           console.log(formatPackageInfo(result.data));
         }

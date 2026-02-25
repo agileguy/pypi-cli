@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { createTable, formatFileSize, error as logError } from '../../lib/output.js';
+import { createTable, formatFileSize, error as logError, jsonOutput } from '../../lib/output.js';
 import chalk from 'chalk';
 
 interface ReleasesOptions {
@@ -38,7 +38,7 @@ export function createReleasesCommand(): Command {
 
         // JSON output
         if (options.json) {
-          const jsonOutput = releaseFiles.map(file => ({
+          const releaseData = releaseFiles.map(file => ({
             filename: file.filename,
             size: file.size,
             type: file.packagetype,
@@ -50,7 +50,7 @@ export function createReleasesCommand(): Command {
             yanked_reason: file.yanked_reason,
           }));
 
-          console.log(JSON.stringify(jsonOutput, null, 2));
+          jsonOutput(releaseData, { package: packageName, version: targetVersion });
           return;
         }
 

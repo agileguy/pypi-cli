@@ -47,6 +47,16 @@ function getChalk() {
 }
 
 /**
+ * Output JSON in a consistent envelope format.
+ * When meta is provided, wraps as { ...meta, data }.
+ * Otherwise outputs data directly.
+ */
+export function jsonOutput(data: unknown, meta?: Record<string, unknown>): void {
+  const output = meta ? { ...meta, data } : data;
+  console.log(JSON.stringify(output, null, 2));
+}
+
+/**
  * Format output based on specified format
  */
 export function formatOutput(data: unknown, options: OutputOptions = {}): string {

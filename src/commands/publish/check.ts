@@ -6,7 +6,7 @@
 
 import { Command } from 'commander';
 import { validateDistribution, getDistributionFiles, extractMetadataFromWheel, extractMetadataFromSdist } from '../../lib/upload.js';
-import { success, error, info, formatHeader } from '../../lib/output.js';
+import { success, error, info, formatHeader, jsonOutput } from '../../lib/output.js';
 import chalk from 'chalk';
 
 /**
@@ -14,6 +14,7 @@ import chalk from 'chalk';
  */
 interface CheckOptions {
   verbose?: boolean;
+  json?: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export function createCheckCommand(): Command {
     .description('Validate package distribution files before upload')
     .argument('[path]', 'Path to distribution file or directory (default: ./dist)', './dist')
     .option('-v, --verbose', 'Show detailed validation information')
+    .option('--json', 'Output as JSON')
     .action(checkAction);
 
   return command;
@@ -65,15 +67,15 @@ async function checkAction(path: string, options: CheckOptions): Promise<void> {
     let allValid = true;
     let totalErrors = 0;
     let totalWarnings = 0;
+    const fileResults: Array<{ filename: string; valid: boolean; errors: string[]; warnings: string[]; metadata?: { name?: string; version?: string }; size: number }> = [];
 
     for (const filePath of filesToCheck) {
       const filename = filePath.split('/').pop() || filePath;
-      console.log(chalk.bold(`Checking ${filename}...`));
 
       // Validate the file
       const result = await validateDistribution(filePath);
 
-      // Extract metadata for display
+      // Extract metadata
       let metadata;
       if (filePath.endsWith('.whl')) {
         metadata = await extractMetadataFromWheel(filePath);
@@ -81,53 +83,72 @@ async function checkAction(path: string, options: CheckOptions): Promise<void> {
         metadata = await extractMetadataFromSdist(filePath);
       }
 
-      // Display validation results
-      if (result.valid) {
-        success('Valid distribution format');
-      } else {
-        error('Invalid distribution format');
-        allValid = false;
-      }
-
-      // Show errors
-      if (result.errors.length > 0) {
-        console.log(chalk.red('  Errors:'));
-        for (const err of result.errors) {
-          console.log(chalk.red(`    ✗ ${err}`));
-          totalErrors++;
-        }
-      }
-
-      // Show warnings
-      if (result.warnings.length > 0) {
-        console.log(chalk.yellow('  Warnings:'));
-        for (const warn of result.warnings) {
-          console.log(chalk.yellow(`    ⚠ ${warn}`));
-          totalWarnings++;
-        }
-      }
-
-      // Show metadata if verbose or valid
-      if ((options.verbose || result.valid) && metadata) {
-        console.log('  Metadata:');
-        if (metadata.name) {
-          console.log(chalk.green(`    ✓ Name: ${metadata.name}`));
-        }
-        if (metadata.version) {
-          console.log(chalk.green(`    ✓ Version: ${metadata.version}`));
-        }
-      }
-
-      // Show file size
       const fileStats = Bun.file(filePath);
       const size = fileStats.size;
-      const sizeStr = formatBytes(size);
 
-      if (options.verbose) {
-        console.log(`  Size: ${sizeStr}`);
+      if (!result.valid) {
+        allValid = false;
       }
+      totalErrors += result.errors.length;
+      totalWarnings += result.warnings.length;
 
-      console.log();
+      fileResults.push({
+        filename,
+        valid: result.valid,
+        errors: result.errors,
+        warnings: result.warnings,
+        metadata: metadata ? { name: metadata.name, version: metadata.version } : undefined,
+        size,
+      });
+
+      if (!options.json) {
+        console.log(chalk.bold(`Checking ${filename}...`));
+
+        if (result.valid) {
+          success('Valid distribution format');
+        } else {
+          error('Invalid distribution format');
+        }
+
+        if (result.errors.length > 0) {
+          console.log(chalk.red('  Errors:'));
+          for (const err of result.errors) {
+            console.log(chalk.red(`    ✗ ${err}`));
+          }
+        }
+
+        if (result.warnings.length > 0) {
+          console.log(chalk.yellow('  Warnings:'));
+          for (const warn of result.warnings) {
+            console.log(chalk.yellow(`    ⚠ ${warn}`));
+          }
+        }
+
+        if ((options.verbose || result.valid) && metadata) {
+          console.log('  Metadata:');
+          if (metadata.name) {
+            console.log(chalk.green(`    ✓ Name: ${metadata.name}`));
+          }
+          if (metadata.version) {
+            console.log(chalk.green(`    ✓ Version: ${metadata.version}`));
+          }
+        }
+
+        if (options.verbose) {
+          console.log(`  Size: ${formatBytes(size)}`);
+        }
+
+        console.log();
+      }
+    }
+
+    if (options.json) {
+      jsonOutput({
+        files: fileResults,
+        summary: { files_checked: filesToCheck.length, errors: totalErrors, warnings: totalWarnings, all_valid: allValid },
+      });
+      if (!allValid || totalErrors > 0) process.exit(1);
+      process.exit(0);
     }
 
     // Summary

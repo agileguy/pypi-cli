@@ -6,17 +6,43 @@
 
 import { Command } from 'commander';
 import { loadConfigSync, maskApiToken } from '../../lib/config.js';
-import { formatSuccess, formatInfo, formatError, formatBold, formatDim } from '../../lib/output.js';
+import { formatSuccess, formatInfo, formatError, formatBold, formatDim, jsonOutput } from '../../lib/output.js';
+
+interface TokenListOptions {
+  json?: boolean;
+}
 
 /**
  * Token list command handler
  */
-async function handleTokenList(): Promise<void> {
+async function handleTokenList(options: TokenListOptions): Promise<void> {
   try {
     const config = loadConfigSync();
 
     console.log('\n' + formatBold('🔑 Saved PyPI Tokens'));
     console.log('═══════════════════════════════════════\n');
+
+    if (options.json) {
+      const tokens: Array<{ name: string; token: string; source: string; active: boolean }> = [];
+      if (config.apiToken) {
+        tokens.push({
+          name: config.tokenName || 'Default Token',
+          token: maskApiToken(config.apiToken),
+          source: 'config',
+          active: !process.env.PYPI_API_TOKEN,
+        });
+      }
+      if (process.env.PYPI_API_TOKEN) {
+        tokens.push({
+          name: 'Environment Variable',
+          token: maskApiToken(process.env.PYPI_API_TOKEN),
+          source: 'env',
+          active: true,
+        });
+      }
+      jsonOutput(tokens);
+      return;
+    }
 
     if (!config.apiToken) {
       console.log(formatInfo('No tokens saved in configuration.\n'));
@@ -57,5 +83,6 @@ export function createTokenListCommand(): Command {
   return new Command('list')
     .description('List saved PyPI API tokens')
     .summary('List saved PyPI API tokens')
+    .option('--json', 'Output as JSON')
     .action(handleTokenList);
 }

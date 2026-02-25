@@ -7,7 +7,7 @@ import { createClient, PyPIAPIError } from '../../lib/api-client.js';
 import { cache, TTL } from '../../lib/cache.js';
 import { renderLineChart, calculatePercentageChange, formatDateShort } from '../../lib/chart.js';
 import chalk from 'chalk';
-import { error as logError } from '../../lib/output.js';
+import { error as logError, jsonOutput } from '../../lib/output.js';
 import Table from 'cli-table3';
 
 interface DownloadsOptions {
@@ -99,7 +99,7 @@ export function createDownloadsCommand(): Command {
         }
 
         if (options.json) {
-          console.log(JSON.stringify({ package: packageName, period, data }, null, 2));
+          jsonOutput(data, { package: packageName, period });
         } else {
           // Format and display
           const periodLabel = period.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());

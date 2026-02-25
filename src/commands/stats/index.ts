@@ -6,7 +6,7 @@ import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
 import { cache, TTL } from '../../lib/cache.js';
 import chalk from 'chalk';
-import { error as logError, formatHeader } from '../../lib/output.js';
+import { error as logError, formatHeader, jsonOutput } from '../../lib/output.js';
 import { createDownloadsCommand } from './downloads.js';
 import { createTrendingCommand } from './trending.js';
 
@@ -95,14 +95,13 @@ export function createStatsCommand(): Command {
           : null;
 
         if (options.json) {
-          console.log(JSON.stringify({
-            package: packageName,
-            totalDownloads,
-            dailyAverage,
-            peakDay,
-            pythonVersions: pythonData,
+          jsonOutput({
+            total_downloads: totalDownloads,
+            daily_average: dailyAverage,
+            peak_day: peakDay,
+            python_versions: pythonData,
             systems: systemData,
-          }, null, 2));
+          }, { package: packageName });
         } else {
           // Format and display
           console.log(chalk.bold.cyan(`📊 Download Statistics: ${packageName}`));

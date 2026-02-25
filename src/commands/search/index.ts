@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { formatSearchResults, formatOutput, error as logError } from '../../lib/output.js';
+import { formatSearchResults, formatOutput, error as logError, jsonOutput } from '../../lib/output.js';
 import type { OutputFormat } from '../../types/api.js';
 
 interface SearchOptions {
@@ -43,7 +43,7 @@ export function createSearchCommand(): Command {
 
         // Format and display results
         if (options.json || outputFormat === 'json') {
-          console.log(JSON.stringify(result.data, null, 2));
+          jsonOutput(result.data, { query });
         } else if (outputFormat === 'table') {
           const tableData = result.data.map(pkg => ({
             name: pkg.name,
