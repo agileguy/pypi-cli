@@ -45,6 +45,9 @@ pypi publish check dist/mypackage-1.0.0.tar.gz
 
 # Show detailed validation info
 pypi publish check --verbose
+
+# Output as JSON (for CI/CD pipelines)
+pypi publish check --json
 ```
 
 **What it checks:**

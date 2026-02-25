@@ -18,6 +18,7 @@ A powerful command-line interface for [PyPI](https://pypi.org) - The Python Pack
 - **Security Scanning** - Vulnerability auditing via OSV API
 - **Token Management** - Create, list, and revoke API tokens
 - **Multiple Output Formats** - JSON, table, or pretty-printed output
+- **Consistent JSON Envelope** - All `--json` output uses a standard `{ package, data }` envelope
 - **Scriptable** - Perfect for CI/CD pipelines and automation
 
 ## Installation
@@ -112,6 +113,7 @@ pypi trending --category web --limit 20
 # Validate distribution files
 pypi check
 pypi check dist/mypackage-1.0.0.tar.gz
+pypi check --json
 
 # Upload a single file
 pypi upload dist/mypackage-1.0.0.tar.gz
@@ -132,6 +134,7 @@ pypi token create --name "CI/CD Token" --scope project:mypackage
 
 # List all tokens
 pypi token list
+pypi token list --json
 
 # Revoke a token
 pypi token revoke <token-id>
@@ -147,6 +150,7 @@ pypi audit flask --version 2.3.0
 # Verify package integrity
 pypi verify requests
 pypi verify numpy --version 1.24.0
+pypi verify requests --json
 ```
 
 ## Global Options
@@ -242,8 +246,11 @@ pypi publish
 # Use environment variable for token
 PYPI_API_TOKEN=$PYPI_TOKEN pypi publish --output json
 
-# Check for vulnerabilities in CI
-pypi audit mypackage --output json | jq '.vulnerabilities | length'
+# Check for vulnerabilities in CI (JSON envelope: { package, data })
+pypi audit mypackage --json | jq '.data | length'
+
+# Validate distributions in CI
+pypi publish check --json | jq '.data.summary.all_valid'
 ```
 
 ## API Token
