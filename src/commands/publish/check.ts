@@ -6,7 +6,7 @@
 
 import { Command } from 'commander';
 import { validateDistribution, getDistributionFiles, extractMetadataFromWheel, extractMetadataFromSdist } from '../../lib/upload.js';
-import { success, error, info, formatHeader, jsonOutput } from '../../lib/output.js';
+import { success, error, info, formatHeader, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import chalk from 'chalk';
 
 /**
@@ -36,7 +36,7 @@ export function createCheckCommand(): Command {
 /**
  * Check command action
  */
-async function checkAction(path: string, options: CheckOptions): Promise<void> {
+async function checkAction(path: string, options: CheckOptions, command: Command): Promise<void> {
   try {
     console.log(formatHeader('Checking Distribution Files'));
 
@@ -101,7 +101,7 @@ async function checkAction(path: string, options: CheckOptions): Promise<void> {
         size,
       });
 
-      if (!options.json) {
+      if (!isJsonRequested(command)) {
         console.log(chalk.bold(`Checking ${filename}...`));
 
         if (result.valid) {
@@ -142,7 +142,7 @@ async function checkAction(path: string, options: CheckOptions): Promise<void> {
       }
     }
 
-    if (options.json) {
+    if (isJsonRequested(command)) {
       jsonOutput({
         files: fileResults,
         summary: { files_checked: filesToCheck.length, errors: totalErrors, warnings: totalWarnings, all_valid: allValid },

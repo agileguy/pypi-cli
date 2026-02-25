@@ -6,7 +6,7 @@
 
 import { Command } from 'commander';
 import { createHash } from 'crypto';
-import { formatError, formatBold, formatInfo, formatSuccess, formatDim, jsonOutput } from '../../lib/output.js';
+import { formatError, formatBold, formatInfo, formatSuccess, formatDim, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import type { PyPIPackage, ReleaseFile } from '../../types/index.js';
 
 interface VerifyOptions {
@@ -88,11 +88,11 @@ function getExpectedHash(file: ReleaseFile, algorithm: string): string | null {
 /**
  * Security verify command handler
  */
-async function handleVerify(packageName: string, version: string | undefined, options: VerifyOptions): Promise<void> {
+async function handleVerify(packageName: string, version: string | undefined, options: VerifyOptions, command: Command): Promise<void> {
   try {
     const algorithm = options.algorithm || 'sha256';
 
-    if (!options.json) {
+    if (!isJsonRequested(command)) {
       console.log('\n' + formatBold('🔒 Verifying: ' + packageName));
       console.log('═══════════════════════════════════════\n');
     }
@@ -110,7 +110,7 @@ async function handleVerify(packageName: string, version: string | undefined, op
       throw new Error('Could not determine package version');
     }
 
-    if (!options.json) {
+    if (!isJsonRequested(command)) {
       console.log(formatInfo(`Version: ${targetVersion}\n`));
     }
 
@@ -120,7 +120,7 @@ async function handleVerify(packageName: string, version: string | undefined, op
       throw new Error(`No release files found for version ${targetVersion}`);
     }
 
-    if (!options.json) {
+    if (!isJsonRequested(command)) {
       console.log(formatInfo(`Found ${releases.length} file(s) to verify\n`));
     }
 
@@ -130,13 +130,13 @@ async function handleVerify(packageName: string, version: string | undefined, op
     const results: Array<{ filename: string; algorithm: string; expected: string | null; computed: string | null; verified: boolean; error?: string }> = [];
 
     for (const file of releases) {
-      if (!options.json) {
+      if (!isJsonRequested(command)) {
         console.log(formatBold(`Checking ${file.filename}...`));
       }
 
       const expectedHash = getExpectedHash(file, algorithm);
       if (!expectedHash) {
-        if (!options.json) {
+        if (!isJsonRequested(command)) {
           console.log(formatError(`  ✗ No ${algorithm} hash available`));
         }
         results.push({ filename: file.filename, algorithm, expected: null, computed: null, verified: false, error: `No ${algorithm} hash available` });
@@ -144,7 +144,7 @@ async function handleVerify(packageName: string, version: string | undefined, op
         continue;
       }
 
-      if (!options.json) {
+      if (!isJsonRequested(command)) {
         console.log(formatDim(`  Expected ${algorithm.toUpperCase()}: ${expectedHash.substring(0, 16)}...`));
       }
 
@@ -153,14 +153,14 @@ async function handleVerify(packageName: string, version: string | undefined, op
         const computedHash = await downloadAndHash(file.url, algorithm);
 
         if (computedHash === expectedHash) {
-          if (!options.json) {
+          if (!isJsonRequested(command)) {
             console.log(formatDim(`  Computed ${algorithm.toUpperCase()}: ${computedHash.substring(0, 16)}...`));
             console.log(formatSuccess('  ✓ Hash verified\n'));
           }
           results.push({ filename: file.filename, algorithm, expected: expectedHash, computed: computedHash, verified: true });
           verifiedCount++;
         } else {
-          if (!options.json) {
+          if (!isJsonRequested(command)) {
             console.log(formatDim(`  Computed ${algorithm.toUpperCase()}: ${computedHash.substring(0, 16)}...`));
             console.log(formatError('  ✗ Hash mismatch!\n'));
           }
@@ -169,7 +169,7 @@ async function handleVerify(packageName: string, version: string | undefined, op
         }
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : 'unknown error';
-        if (!options.json) {
+        if (!isJsonRequested(command)) {
           console.log(formatError(`  ✗ Failed to verify: ${errMsg}\n`));
         }
         results.push({ filename: file.filename, algorithm, expected: expectedHash, computed: null, verified: false, error: errMsg });
@@ -178,7 +178,7 @@ async function handleVerify(packageName: string, version: string | undefined, op
     }
 
     // Output
-    if (options.json) {
+    if (isJsonRequested(command)) {
       jsonOutput({ files: results, all_verified: allVerified, verified_count: verifiedCount }, { package: packageName, version: targetVersion });
       if (!allVerified) process.exit(1);
       return;

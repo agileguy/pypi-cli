@@ -6,7 +6,7 @@ import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
 import { cache, TTL } from '../../lib/cache.js';
 import chalk from 'chalk';
-import { error as logError, formatHeader, jsonOutput } from '../../lib/output.js';
+import { error as logError, formatHeader, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import { createDownloadsCommand } from './downloads.js';
 import { createTrendingCommand } from './trending.js';
 
@@ -33,7 +33,7 @@ export function createStatsCommand(): Command {
     .argument('<package>', 'Package name')
     .option('--json', 'Output as JSON')
     .option('--no-cache', 'Skip cache and fetch fresh data')
-    .action(async (packageName: string, options: StatsOptions) => {
+    .action(async (packageName: string, options: StatsOptions, command: Command) => {
       try {
         const client = createClient();
         const cacheKey = `stats:${packageName}`;
@@ -94,7 +94,7 @@ export function createStatsCommand(): Command {
           ? recentData.reduce((max, d) => d.downloads > max.downloads ? d : max, recentData[0])
           : null;
 
-        if (options.json) {
+        if (isJsonRequested(command)) {
           jsonOutput({
             total_downloads: totalDownloads,
             daily_average: dailyAverage,

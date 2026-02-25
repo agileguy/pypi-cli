@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { createTable, error as logError, jsonOutput } from '../../lib/output.js';
+import { createTable, error as logError, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import chalk from 'chalk';
 
 interface VersionsOptions {
@@ -23,7 +23,7 @@ export function createVersionsCommand(): Command {
     .argument('<package>', 'Package name')
     .option('-l, --limit <number>', 'Maximum number of versions to display')
     .option('--json', 'Output as JSON')
-    .action(async (packageName: string, options: VersionsOptions) => {
+    .action(async (packageName: string, options: VersionsOptions, command: Command) => {
       try {
         const client = createClient();
 
@@ -48,7 +48,7 @@ export function createVersionsCommand(): Command {
         const displayVersions = versions.slice(0, limit);
 
         // JSON output
-        if (options.json) {
+        if (isJsonRequested(command)) {
           const versionData = displayVersions.map(version => {
             const release = releases[version];
             const hasFiles = release && release.length > 0;

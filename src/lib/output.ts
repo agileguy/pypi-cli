@@ -57,6 +57,26 @@ export function jsonOutput(data: unknown, meta?: Record<string, unknown>): void 
 }
 
 /**
+ * Check if JSON output is requested via --json flag or global --output json.
+ * Commander subcommands don't inherit parent options automatically,
+ * so this checks both the local options and walks up the parent chain.
+ */
+export function isJsonRequested(command: { opts: () => Record<string, unknown>; parent?: { opts: () => Record<string, unknown>; parent?: unknown } | null }): boolean {
+  const localOpts = command.opts();
+  if (localOpts.json) return true;
+
+  // Walk up to parent to check global --output option
+  let current = command.parent;
+  while (current && 'opts' in current) {
+    const parentOpts = (current as { opts: () => Record<string, unknown> }).opts();
+    if (parentOpts.output === 'json') return true;
+    current = (current as { parent?: unknown }).parent as typeof command.parent;
+  }
+
+  return false;
+}
+
+/**
  * Format output based on specified format
  */
 export function formatOutput(data: unknown, options: OutputOptions = {}): string {

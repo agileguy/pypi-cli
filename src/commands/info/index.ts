@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { formatPackageInfo, error as logError, jsonOutput } from '../../lib/output.js';
+import { formatPackageInfo, error as logError, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import { createVersionsCommand } from './versions.js';
 import { createReleasesCommand } from './releases.js';
 import { createDepsCommand } from './deps.js';
@@ -25,7 +25,7 @@ export function createInfoCommand(): Command {
     .argument('<package>', 'Package name')
     .argument('[version]', 'Specific version (optional, defaults to latest)')
     .option('--json', 'Output as JSON')
-    .action(async (packageName: string, version: string | undefined, options: InfoOptions) => {
+    .action(async (packageName: string, version: string | undefined, _options: InfoOptions, command: Command) => {
       try {
         const client = createClient();
 
@@ -33,7 +33,7 @@ export function createInfoCommand(): Command {
         const result = await client.getPackage(packageName, version);
 
         // Output format
-        if (options.json) {
+        if (isJsonRequested(command)) {
           jsonOutput(result.data.info, { package: packageName });
         } else {
           console.log(formatPackageInfo(result.data));

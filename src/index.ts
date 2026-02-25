@@ -17,7 +17,7 @@ import { setNoColor } from './lib/output.js';
 import type { GlobalOptions } from './types/index.js';
 
 // Package metadata
-const VERSION = '1.0.0';
+const VERSION = '1.1.1';
 const DESCRIPTION = 'CLI for PyPI - The Python Package Index';
 
 /**

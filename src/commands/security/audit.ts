@@ -5,7 +5,7 @@
  */
 
 import { Command } from 'commander';
-import { formatError, formatBold, formatInfo, formatWarning, formatSuccess, formatDim, jsonOutput } from '../../lib/output.js';
+import { formatError, formatBold, formatInfo, formatWarning, formatSuccess, formatDim, jsonOutput, isJsonRequested } from '../../lib/output.js';
 
 interface AuditOptions {
   severity?: 'low' | 'medium' | 'high' | 'critical';
@@ -187,7 +187,7 @@ function filterBySeverity(vulns: OSVVulnerability[], minSeverity?: string): OSVV
 /**
  * Security audit command handler
  */
-async function handleAudit(packageName: string, version: string | undefined, options: AuditOptions): Promise<void> {
+async function handleAudit(packageName: string, version: string | undefined, options: AuditOptions, command: Command): Promise<void> {
   try {
     console.log('\n' + formatBold('🔍 Security Audit: ' + packageName));
     console.log('═══════════════════════════════════════\n');
@@ -218,7 +218,7 @@ async function handleAudit(packageName: string, version: string | undefined, opt
     }
 
     // Output as JSON if requested
-    if (options.json) {
+    if (isJsonRequested(command)) {
       jsonOutput(vulnerabilities, { package: packageName });
       return;
     }

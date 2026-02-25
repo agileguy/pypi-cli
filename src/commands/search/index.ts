@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { formatSearchResults, formatOutput, error as logError, jsonOutput } from '../../lib/output.js';
+import { formatSearchResults, formatOutput, error as logError, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import type { OutputFormat } from '../../types/api.js';
 
 interface SearchOptions {
@@ -24,7 +24,7 @@ export function createSearchCommand(): Command {
     .argument('<query>', 'Search query')
     .option('-l, --limit <number>', 'Maximum number of results to display', '20')
     .option('--json', 'Output results as JSON')
-    .action(async (query: string, options: SearchOptions) => {
+    .action(async (query: string, options: SearchOptions, command: Command) => {
       try {
         const client = createClient();
         const limit = options.limit ? parseInt(options.limit, 10) : 20;
@@ -38,11 +38,12 @@ export function createSearchCommand(): Command {
         // Search for packages
         const result = await client.searchPackages(query, limit);
 
-        // Determine output format
-        const outputFormat = options.json ? 'json' : (options.output || 'pretty');
+        // Determine output format from global --output option
+        const parentOpts = command.parent?.opts() || {};
+        const outputFormat = options.output || (parentOpts as Record<string, unknown>).output || 'pretty';
 
         // Format and display results
-        if (options.json || outputFormat === 'json') {
+        if (isJsonRequested(command)) {
           jsonOutput(result.data, { query });
         } else if (outputFormat === 'table') {
           const tableData = result.data.map(pkg => ({
@@ -57,7 +58,7 @@ export function createSearchCommand(): Command {
         }
 
         // Show result count
-        if (!options.json && result.data.length > 0) {
+        if (!isJsonRequested(command) && result.data.length > 0) {
           console.log(`\nFound ${result.data.length} package${result.data.length === 1 ? '' : 's'}`);
         }
       } catch (err) {

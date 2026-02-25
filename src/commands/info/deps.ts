@@ -4,7 +4,7 @@
 
 import { Command } from 'commander';
 import { createClient, PyPIAPIError } from '../../lib/api-client.js';
-import { error as logError, jsonOutput } from '../../lib/output.js';
+import { error as logError, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import chalk from 'chalk';
 
 interface DepsOptions {
@@ -67,7 +67,7 @@ export function createDepsCommand(): Command {
     .argument('[version]', 'Specific version (optional, defaults to latest)')
     .option('--tree', 'Display dependencies as a tree')
     .option('--json', 'Output as JSON')
-    .action(async (packageName: string, version: string | undefined, options: DepsOptions) => {
+    .action(async (packageName: string, version: string | undefined, options: DepsOptions, command: Command) => {
       try {
         const client = createClient();
 
@@ -94,7 +94,7 @@ export function createDepsCommand(): Command {
         });
 
         // JSON output
-        if (options.json) {
+        if (isJsonRequested(command)) {
           jsonOutput(parsedDeps, { package: packageName });
           return;
         }

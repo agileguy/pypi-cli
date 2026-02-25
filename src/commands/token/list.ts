@@ -6,7 +6,7 @@
 
 import { Command } from 'commander';
 import { loadConfigSync, maskApiToken } from '../../lib/config.js';
-import { formatSuccess, formatInfo, formatError, formatBold, formatDim, jsonOutput } from '../../lib/output.js';
+import { formatSuccess, formatInfo, formatError, formatBold, formatDim, jsonOutput, isJsonRequested } from '../../lib/output.js';
 
 interface TokenListOptions {
   json?: boolean;
@@ -15,14 +15,14 @@ interface TokenListOptions {
 /**
  * Token list command handler
  */
-async function handleTokenList(options: TokenListOptions): Promise<void> {
+async function handleTokenList(_options: TokenListOptions, command: Command): Promise<void> {
   try {
     const config = loadConfigSync();
 
     console.log('\n' + formatBold('🔑 Saved PyPI Tokens'));
     console.log('═══════════════════════════════════════\n');
 
-    if (options.json) {
+    if (isJsonRequested(command)) {
       const tokens: Array<{ name: string; token: string; source: string; active: boolean }> = [];
       if (config.apiToken) {
         tokens.push({

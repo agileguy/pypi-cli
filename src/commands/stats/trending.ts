@@ -7,7 +7,7 @@ import { createClient, PyPIAPIError } from '../../lib/api-client.js';
 import { cache, TTL } from '../../lib/cache.js';
 import { formatNumber, calculatePercentageChange } from '../../lib/chart.js';
 import chalk from 'chalk';
-import { error as logError, jsonOutput } from '../../lib/output.js';
+import { error as logError, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import Table from 'cli-table3';
 import ora from 'ora';
 
@@ -63,7 +63,7 @@ export function createTrendingCommand(): Command {
     .option('-c, --category <category>', 'Filter by category (web, data, ml, devops, testing, http, cli, async, utils)')
     .option('--json', 'Output as JSON')
     .option('--no-cache', 'Skip cache and fetch fresh data')
-    .action(async (options: TrendingOptions) => {
+    .action(async (options: TrendingOptions, command: Command) => {
       try {
         const limit = parseInt(String(options.limit || 10), 10);
         const cacheKey = `trending:${options.category || 'all'}`;
@@ -99,7 +99,7 @@ export function createTrendingCommand(): Command {
         // Limit results
         const displayPackages = trendingPackages.slice(0, limit);
 
-        if (options.json) {
+        if (isJsonRequested(command)) {
           jsonOutput(displayPackages);
         } else {
           // Format and display

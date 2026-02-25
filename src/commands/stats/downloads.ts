@@ -7,7 +7,7 @@ import { createClient, PyPIAPIError } from '../../lib/api-client.js';
 import { cache, TTL } from '../../lib/cache.js';
 import { renderLineChart, calculatePercentageChange, formatDateShort } from '../../lib/chart.js';
 import chalk from 'chalk';
-import { error as logError, jsonOutput } from '../../lib/output.js';
+import { error as logError, jsonOutput, isJsonRequested } from '../../lib/output.js';
 import Table from 'cli-table3';
 
 interface DownloadsOptions {
@@ -32,7 +32,7 @@ export function createDownloadsCommand(): Command {
     .option('-v, --version <version>', 'Filter by package version')
     .option('--json', 'Output as JSON')
     .option('--no-cache', 'Skip cache and fetch fresh data')
-    .action(async (packageName: string, options: DownloadsOptions) => {
+    .action(async (packageName: string, options: DownloadsOptions, command: Command) => {
       try {
         const client = createClient();
         const period = (options.period || 'recent') as Period;
@@ -98,7 +98,7 @@ export function createDownloadsCommand(): Command {
           return;
         }
 
-        if (options.json) {
+        if (isJsonRequested(command)) {
           jsonOutput(data, { package: packageName, period });
         } else {
           // Format and display
